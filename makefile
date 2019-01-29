@@ -43,4 +43,4 @@ clean:
 	@echo "cleaning design..."
 	@ghdl --remove --workdir=$(WORKDIR)
 	@rm -f $(WORKDIR)/*
-	@rm -f $(WORKDIR)
+	@rmdir $(WORKDIR)
