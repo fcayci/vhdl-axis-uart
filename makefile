@@ -2,45 +2,52 @@
 # description:
 #   add ghdl to your PATH for simulation
 #   add gtkwave to your PATH for displayin the waveform
-#   change the ARCHNAME for simulating different parts
+#   run with make simulate ARCHNAME=tb_xxx STOPTIME=1us
 
 CC = ghdl
 SIM = gtkwave
-ARCHNAME = tb_uart
-STOPTIME = 100ms
+WORKDIR = debug
+QUIET = @
 
-SRCS = $(wildcard rtl/*.vhd)
-#SRCS += $(wildcard impl/*.vhd)
+ARCHNAME?= tb_uart
+STOPTIME= 100ms
+
+VHDL_SOURCES = $(wildcard rtl/*.vhd)
+#VHDL_SOURCES += $(wildcard impl/*.vhd)
 TBS = $(wildcard sim/tb_*.vhd)
 TB = sim/$(ARCHNAME).vhd
-WORKDIR = debug
 
-OBJS = $(patsubst sim/%.vhd, %.bin, $(TBS))
+CFLAGS += --std=08 # enable ieee 2008 standard
+CFLAGS += --warn-binding
+CFLAGS += --warn-no-library # turn off warning on design replace with same name
 
 .PHONY: all
 all: check analyze
-	@echo "completed..."
+	@echo ">>> completed..."
 
 .PHONY: check
 check:
-	@echo "checking the syntax for the designs..."
-	@$(CC) -s $(SRCS) $(TBS)
+	@echo ">>> check syntax on all designs..."
+	$(QUIET)$(CC) -s $(CFLAGS) $(VHDL_SOURCES) $(TBS)
 
 .PHONY: analyze
 analyze:
-	@echo "analyzing designs..."
-	@mkdir -p $(WORKDIR)
-	@$(CC) -a --workdir=$(WORKDIR) $(SRCS) $(TBS)
+	@echo ">>> analyzing designs..."
+	$(QUIET)mkdir -p $(WORKDIR)
+	$(QUIET)$(CC) -a $(CFLAGS) --workdir=$(WORKDIR) $(VHDL_SOURCES) $(TBS)
 
 .PHONY: simulate
-simulate: clean analyze
-	@echo "simulating design:" $(TB)
-	@$(CC) --elab-run --workdir=$(WORKDIR) -o $(WORKDIR)/$(ARCHNAME).bin $(ARCHNAME) --vcd=$(WORKDIR)/$(ARCHNAME).vcd --stop-time=$(STOPTIME)
-	@$(SIM) $(WORKDIR)/$(ARCHNAME).vcd
+simulate: analyze
+	@echo ">>> simulating design:" $(TB)
+	$(QUIET)$(CC) --elab-run $(CFLAGS) --workdir=$(WORKDIR) \
+		-o $(WORKDIR)/$(ARCHNAME).bin $(ARCHNAME) \
+		--vcd=$(WORKDIR)/$(ARCHNAME).vcd --stop-time=$(STOPTIME)
+	@echo ">>> showing waveform for:" $(TB)
+	$(QUIET)$(SIM) $(WORKDIR)/$(ARCHNAME).vcd
 
 .PHONY: clean
 clean:
 	@echo "cleaning design..."
-	@ghdl --remove --workdir=$(WORKDIR)
-	@rm -f $(WORKDIR)/*
-	@rmdir $(WORKDIR)
+	$(QUIET)ghdl --remove --workdir=$(WORKDIR)
+	$(QUIET)rm -f $(WORKDIR)/*
+	$(QUIET)rm -rf $(WORKDIR)

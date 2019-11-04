@@ -1,14 +1,17 @@
 -- author: Furkan Cayci, 2018
--- description: uart loopback testbench
+-- description: uart axis loopback testbench
+--    rx and tx lines are connected together
+--    data is sent to rx
+--    should pop out from tx
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity tb_uart is
-end tb_uart;
+entity tb_uart_axis_lb is
+end tb_uart_axis_lb;
 
-architecture rtl of tb_uart is
+architecture rtl of tb_uart_axis_lb is
     component uart is
     generic (
         CLKFREQ    : integer := 125E6; -- 125 Mhz clock
@@ -105,7 +108,7 @@ begin
         end loop;
 
         -- complete the simulation
-        assert false report "completed the test" severity note;
+        assert false report "completed test" severity note;
 
         wait;
     end process;

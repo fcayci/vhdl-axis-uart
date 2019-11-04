@@ -93,7 +93,7 @@ begin
             report "data does not match" severity error;
 
         -- complete the simulation
-        assert false report "successfully completed the test" severity note;
+        assert false report "completed test" severity note;
 
         wait;
     end process;
