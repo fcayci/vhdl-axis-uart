@@ -8,24 +8,6 @@ entity tb_uart_tx is
 end tb_uart_tx;
 
 architecture rtl of tb_uart_tx is
-    component uart_tx is
-    generic (
-        CLKFREQ    : integer := 125E6;
-        BAUDRATE   : integer := 115200;
-        DATA_WIDTH : integer := 8;
-        PARITY     : string  := "NONE"; -- NONE, EVEN, ODD
-        STOP_WIDTH : integer := 1
-    );
-    port (
-        clk     : in  std_logic;
-        -- external interface signals
-        txd     : out std_logic;
-        -- axi stream interface
-        s_axis_tvalid : in  std_logic;
-        s_axis_tdata  : in  std_logic_vector(DATA_WIDTH-1 downto 0);
-        s_axis_tready : out std_logic
-    );
-    end component;
 
     constant CLKFREQ    : integer := 125E6; -- 125 Mhz clock
     constant BAUDRATE   : integer := 115200;
@@ -46,7 +28,7 @@ architecture rtl of tb_uart_tx is
 
 begin
 
-    uut_tx: uart_tx
+    uut_tx: entity work.uart_tx
         generic map (CLKFREQ=>CLKFREQ, BAUDRATE=>BAUDRATE,
                      DATA_WIDTH=>DATA_WIDTH, PARITY=>PARITY, STOP_WIDTH=>STOP_WIDTH)
         port map (clk=>clk, txd=>txd, s_axis_tvalid=>s_axis_tvalid,

@@ -9,10 +9,12 @@ SIM = gtkwave
 WORKDIR = debug
 QUIET = @
 
-ARCHNAME?= tb_uart
+ARCHNAME?= tb_uart_rt_lb
 STOPTIME= 100ms
 
-VHDL_SOURCES = $(wildcard rtl/*.vhd)
+VHDL_SOURCES = rtl/uart_rx.vhd rtl/uart_tx.vhd rtl/uart.vhd
+VHDL_SOURCES+= sim/tb_uart_rx.vhd sim/tb_uart_tx.vhd sim/tb_uart_rt_lb.vhd sim/tb_uart_axis_lb.vhd
+
 #VHDL_SOURCES += $(wildcard impl/*.vhd)
 TBS = $(wildcard sim/tb_*.vhd)
 TB = sim/$(ARCHNAME).vhd
@@ -39,8 +41,7 @@ analyze:
 .PHONY: simulate
 simulate: analyze
 	@echo ">>> simulating design:" $(TB)
-	$(QUIET)$(CC) --elab-run $(CFLAGS) --workdir=$(WORKDIR) \
-		-o $(WORKDIR)/$(ARCHNAME).bin $(ARCHNAME) \
+	$(QUIET)$(CC) --elab-run $(CFLAGS) --workdir=$(WORKDIR) $(ARCHNAME) \
 		--vcd=$(WORKDIR)/$(ARCHNAME).vcd --stop-time=$(STOPTIME)
 	@echo ">>> showing waveform for:" $(TB)
 	$(QUIET)$(SIM) $(WORKDIR)/$(ARCHNAME).vcd

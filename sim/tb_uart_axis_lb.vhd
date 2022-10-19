@@ -1,6 +1,6 @@
 -- author: Furkan Cayci, 2018
 -- description: uart axis loopback testbench
---    rx and tx lines are connected together
+--    axis lines are connected together
 --    data is sent to rx
 --    should pop out from tx
 
@@ -12,30 +12,6 @@ entity tb_uart_axis_lb is
 end tb_uart_axis_lb;
 
 architecture rtl of tb_uart_axis_lb is
-    component uart is
-    generic (
-        CLKFREQ    : integer := 125E6; -- 125 Mhz clock
-        BAUDRATE   : integer := 115200;
-        DATA_WIDTH : integer := 8;
-        PARITY     : string  := "NONE"; -- NONE, EVEN, ODD
-        STOP_WIDTH : integer := 1
-    );
-    port (
-        clk     : in  std_logic;
-        -- external interface signals
-        rxd     : in  std_logic;
-        txd     : out std_logic;
-        -- internal interface signals
-        -- master axi stream interface
-        m_axis_tready : in  std_logic;
-        m_axis_tdata  : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m_axis_tvalid : out std_logic;
-        -- slave axi stream interface
-        s_axis_tvalid : in  std_logic;
-        s_axis_tdata  : in  std_logic_vector(DATA_WIDTH-1 downto 0);
-        s_axis_tready : out std_logic
-    );
-    end component;
 
     constant CLKFREQ     : integer := 125E6; -- 125 Mhz clock
     constant BAUDRATE    : integer := 115200;
@@ -58,8 +34,8 @@ architecture rtl of tb_uart_axis_lb is
 
 begin
 
-    -- connect them in loopback mode through rx/tx lines
-    uut : uart
+    -- connect axis lines together in loopback mode
+    uut : entity work.uart(rtl)
         generic map (CLKFREQ=>CLKFREQ, BAUDRATE=>BAUDRATE,
                      DATA_WIDTH=>DATA_WIDTH, PARITY=>PARITY, STOP_WIDTH=>STOP_WIDTH)
         port map(clk=>clk, rxd=>rxd, txd=>txd,
