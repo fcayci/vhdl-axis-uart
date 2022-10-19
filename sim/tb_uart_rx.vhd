@@ -9,19 +9,21 @@ end tb_uart_rx;
 
 architecture rtl of tb_uart_rx is
 
-    constant CLKFREQ    : integer := 125E6; -- 125 Mhz clock
-    constant BAUDRATE   : integer := 115200;
-    constant DATA_WIDTH : integer := 8;
-    constant PARITY     : string  := "NONE";
-    constant STOP_WIDTH : integer := 1;
-    constant M : integer := CLKFREQ / BAUDRATE;
+    constant CLKFREQ     : integer := 125E6; -- 125 Mhz clock
+    constant BAUDRATE    : integer := 115200;
+    constant DATA_WIDTH  : integer := 8;
+    constant PARITY      : string  := "EVEN";
+    constant STOP_WIDTH  : integer := 1;
+    constant M           : integer := CLKFREQ / BAUDRATE;
 
-    constant clk_period : time := 8 ns;
-    constant bit_time   : time := M * clk_period;
-    constant data       : std_logic_vector(DATA_WIDTH-1 downto 0) := x"A5";
+    constant clk_period  : time := 8 ns;
+    constant bit_time    : time := M * clk_period;
+    constant data        : std_logic_vector(DATA_WIDTH-1 downto 0) := x"A5";
+    constant parity_odd  : std_ulogic := '1'; -- A5 -> 10100101 -> parity: 1
+    constant parity_even : std_ulogic := '0'; -- A5 -> 10100101 -> parity: 0
 
-    signal clk : std_logic := '0';
-    signal rxd : std_logic := '0';
+    signal clk           : std_logic := '0';
+    signal rxd           : std_logic := '0';
     signal m_axis_tdata  : std_logic_vector(DATA_WIDTH-1 downto 0);
     signal m_axis_tready : std_logic := '0';
     signal m_axis_tvalid : std_logic;
@@ -62,7 +64,12 @@ begin
         end loop;
 
         if PARITY /= "NONE" then
-            rxd <= '0'; -- checksum
+            -- checksum
+            if PARITY = "ODD" then
+                rxd <= parity_odd;
+            else
+                rxd <= parity_even;
+            end if;
             wait for bit_time;
         end if;
 

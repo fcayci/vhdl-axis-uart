@@ -9,19 +9,21 @@ end tb_uart_tx;
 
 architecture rtl of tb_uart_tx is
 
-    constant CLKFREQ    : integer := 125E6; -- 125 Mhz clock
-    constant BAUDRATE   : integer := 115200;
-    constant DATA_WIDTH : integer := 8;
-    constant PARITY     : string := "NONE";
-    constant STOP_WIDTH : integer := 1;
-    constant M : integer := CLKFREQ / BAUDRATE;
+    constant CLKFREQ     : integer := 125E6; -- 125 Mhz clock
+    constant BAUDRATE    : integer := 115200;
+    constant DATA_WIDTH  : integer := 8;
+    constant PARITY      : string  := "ODD";
+    constant STOP_WIDTH  : integer := 1;
+    constant M           : integer := CLKFREQ / BAUDRATE;
 
-    constant clk_period : time := 8 ns;
-    constant bit_time   : time := M * clk_period;
-    constant data       : std_logic_vector(DATA_WIDTH-1 downto 0) := x"A5";
+    constant clk_period  : time := 8 ns;
+    constant bit_time    : time := M * clk_period;
+    constant data        : std_logic_vector(DATA_WIDTH-1 downto 0) := x"A5";
+    constant parity_odd  : std_ulogic := '1'; -- A5 -> 10100101 -> parity: 1
+    constant parity_even : std_ulogic := '0'; -- A5 -> 10100101 -> parity: 0
 
-    signal clk : std_logic := '0';
-    signal txd : std_logic;
+    signal clk           : std_logic := '0';
+    signal txd           : std_logic;
     signal s_axis_tvalid : std_logic := '0';
     signal s_axis_tdata  : std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
     signal s_axis_tready : std_logic;
@@ -68,8 +70,14 @@ begin
         -- check for parity bit if it exists
         if PARITY /= "NONE" then
             wait for bit_time;
-            assert txd = '0' -- checksum
-                report "bad checksum value" severity error;
+            -- checksum
+            if PARITY = "ODD" then
+                assert txd = parity_odd
+                    report "bad odd partiy value" severity error;
+            else
+                assert txd = parity_even
+                    report "bad even parity value" severity error;
+            end if;
         end if;
         -- check for stop bit(s)
         for i in 0 to STOP_WIDTH-1 loop

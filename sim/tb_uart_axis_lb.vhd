@@ -16,7 +16,8 @@ architecture rtl of tb_uart_axis_lb is
     constant CLKFREQ     : integer := 125E6; -- 125 Mhz clock
     constant BAUDRATE    : integer := 115200;
     constant DATA_WIDTH  : integer := 8;
-    constant PARITY      : string  := "NONE";
+    constant PARITY      : string  := "ODD";
+
     constant STOP_WIDTH  : integer := 1;
     constant M           : integer := CLKFREQ / BAUDRATE;
 
@@ -71,13 +72,19 @@ begin
                 rxd <= data(i); -- data bits
                 wait for bit_time;
             end loop;
-            -- increment data
-            data <= data + 1;
 
             if PARITY /= "NONE" then
-                rxd <= '0'; -- checksum
+                -- checksum
+                if PARITY = "ODD" then
+                    rxd <= (xor data) xor '1';
+                else
+                    rxd <= (xor data) xor '0';
+                end if;
                 wait for bit_time;
             end if;
+
+            -- increment data
+            data <= data + 1;
 
             rxd <= '1'; -- stop bit
             wait for 2*bit_time;

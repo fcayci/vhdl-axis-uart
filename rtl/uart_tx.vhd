@@ -36,6 +36,7 @@ begin
         variable txbuf : std_logic_vector(DATA_WIDTH-1 downto 0) := (others => '0');
         variable bitcount : integer range 0 to DATA_WIDTH-1 := 0;
         variable clkcount : integer range 0 to M-1 := 0;
+        variable par : std_logic := '0';
     begin
         if rising_edge(clk) then
             txd <= '1';
@@ -68,6 +69,12 @@ begin
                             if PARITY = "NONE" then
                                 state := st_stop;
                             else
+                                par := xor txbuf;
+                                if PARITY = "ODD" then
+                                    par := par xor '1';
+                                else
+                                    par := par xor '0';
+                                end if;
                                 state := st_parity;
                             end if;
                         else
@@ -78,7 +85,14 @@ begin
                     end if;
 
                 when st_parity =>
-                    state := st_stop;
+                    txd <= par;
+                    if clkcount = M-1 then
+                        clkcount := 0;
+                        par := '0';
+                        state := st_stop;
+                    else
+                        clkcount := clkcount + 1;
+                    end if;
 
                 when st_stop =>
                     txd <= '1';
