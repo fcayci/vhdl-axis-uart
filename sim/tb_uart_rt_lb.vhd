@@ -16,7 +16,7 @@ architecture rtl of tb_uart_rt_lb is
     constant CLKFREQ    : integer := 125E6; -- 125 Mhz clock
     constant BAUDRATE   : integer := 115200;
     constant DATA_WIDTH : integer := 8;
-    constant PARITY     : string  := "NONE";
+    constant PARITY     : string  := "EVEN";
     constant STOP_WIDTH : integer := 1;
     constant M : integer := CLKFREQ / BAUDRATE;
 

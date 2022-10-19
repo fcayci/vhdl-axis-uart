@@ -38,6 +38,7 @@ begin
         variable rxbuf : std_logic_vector(DATA_WIDTH-1 downto 0) := (others=>'0');
         variable bitcount : integer range 0 to DATA_WIDTH-1 := 0;
         variable clkcount : integer range 0 to M-1 := 0;
+        variable par : std_logic := '0';
     begin
         if rising_edge(clk) then
             if m_axis_tready = '1' then
@@ -61,6 +62,7 @@ begin
                     if clkcount = M-1 then
                         clkcount := 0;
                         rxbuf := rxd & rxbuf(DATA_WIDTH-1 downto 1);
+                        par := par xor rxd;
                         if bitcount = DATA_WIDTH-1 then
                             bitcount := 0;
                             if PARITY = "NONE" then
@@ -76,7 +78,27 @@ begin
                     end if;
 
                 when st_parity =>
-                    state := st_stop;
+                    if clkcount = M-1 then
+                        clkcount := 0;
+                        par := par xor rxd;
+                        if PARITY = "ODD" then
+                            if par /= '1' then
+                                -- raise parity error
+                                report "parity error" severity error;
+                                report "The value of 'p' is " & std_ulogic'image(par);
+                            end if;
+                        else
+                            if par /= '0' then
+                                -- raise parity error
+                                report "parity error" severity error;
+                                report "The value of 'p' is " & std_ulogic'image(par);
+                            end if;
+                        end if;
+                        state := st_stop;
+                        par := '0';
+                    else
+                        clkcount := clkcount + 1;
+                    end if;
 
                 when st_stop =>
                     if clkcount = M-1 then
